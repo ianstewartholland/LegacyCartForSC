@@ -417,13 +417,9 @@ End If
 	JSONarr(0).remove("TransactionNumber")
 	JSONarr(0).Add "Company_ID", Session("CompanyID")
 	JSONarr(0).Add "Name", NewTransactionNumber
-	JSONarr(0).Add "Owner", "5207166000021515324"
 
 	dim json
 	json = JSONarr(0).Serialize()
-'	Response.Write json
-'	response.End
-
 
 	Set HttpReq = Server.CreateObject("MSXML2.ServerXMLHTTP")
 	HttpReq.open "POST", apiUri & "InsertTransaction", False
