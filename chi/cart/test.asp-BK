@@ -1,0 +1,12 @@
+<!--#include file="LogFile.asp"-->
+<!--#include virtual ="/chi/includes/printxml.asp"-->
+<!--#include virtual = "/chi/includes/sendemail.asp"-->
+<!--#include virtual ="/chi/includes/getexchangerate.asp"-->
+<!--#include virtual ="/chi/includes/dbpaths.inc"-->
+<%
+		SendMail "sharon@chiwater.com; info@chiwater.com", _
+				"store@chiwater.com", _
+				"test order email", _
+				"see if it goes through"
+response.write "email sent"
+%>

@@ -1,0 +1,1 @@
+<% Response.Redirect "https://secure.chiwater.com/chi/cart/cart.asp" %>

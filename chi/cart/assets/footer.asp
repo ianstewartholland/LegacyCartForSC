@@ -1,0 +1,96 @@
+﻿    <footer>
+        <hr class="hidden-md hidden-lg" />
+        <div class="container">
+            <div class="row">
+                <div class="col-md-5 footer-no-left-padding">
+                    <span class="footer-title">Connect With Us</span><br />
+                    <br />
+                    <a href="mailto:info@chiwater.com" class="nounderline">
+                        <img src="https://www.pcswmm.com/images/shared/icon_email_blue.png" width="24" height="17" />&nbsp;&nbsp;info@chiwater.com</a><br />
+                    
+                    <table style="margin:15px 0 15px;">
+                        <tr><td><img src="https://www.pcswmm.com/images/shared/icon_phone.png" /></td><td>&nbsp;&nbsp;&nbsp;888-972-7966 (toll-free)<br />
+                    &nbsp;&nbsp;&nbsp;519-767-0197</td></tr>
+                    </table>
+                    
+                    147 Wyndham St. N., Ste. 202<br />
+                    Guelph, Ontario, Canada, N1H 4E9
+                    <div class="shareicons">
+                        <div class="row">
+                            <div class="col-sm-12">
+                                <div class="socialmediasharing">
+                                    <div class="">
+                                        <a href="https://www.facebook.com/pcswmm?ref=aymt_homepage_panel" title="Follow us on Facebook" target="_blank">
+                                            <img src="https://www.pcswmm.com/images/icon_facebook.png" alt="facebook" /></a>
+                                        <a href="https://twitter.com/PCSWMM" title="Follow us on Twitter" target="_blank">
+                                            <img src="https://www.pcswmm.com/images/icon_twitter.png" alt="twitter" /></a>
+                                        <a href="https://www.linkedin.com/in/pcswmm" title="Follow us on Linkedin" target="_blank">
+                                            <img src="https://www.pcswmm.com/images/icon_linkedin.png" alt="linkedin" /></a>
+                                        <a href="https://plus.google.com/+PCSWMMsoftware" title="Follow us on Google+" target="_blank">
+                                            <img src="https://www.pcswmm.com/images/icon_googlePlus.png" alt="gplus" /></a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 hidden-xs hidden-sm">
+                    <span class="footer-title">About CHI</span><br>
+                    <div class="footer-links">
+                        <p><a class="nounderline" href="https://www.chiwater.com/Home/About#introduction">Introduction</a></p>
+                        <p><a class="nounderline" href="https://www.chiwater.com/Home/About#missionandphilosophy">Mission and Philosophy</a></p>
+                        <p><a class="nounderline" href="https://www.chiwater.com/Home/About#management">Management</a></p>
+                        <p><a class="nounderline" href="https://www.chiwater.com/Home/About#partners">Partners</a></p>
+                        <p><a class="nounderline" href="https://www.chiwater.com/Home/About#employment">Employment</a></p>
+                        <p><a class="nounderline" href="https://www.chiwater.com/Home/About#termsofuse">Terms of Use</a></p>
+                        <p><a class="nounderline" href="https://www.chiwater.com/Home/About#privacypolicy">Privacy Policy</a></p>
+                    </div>
+                </div>
+                
+                <div class="col-md-2 hidden-xs hidden-sm">
+                </div>
+                <div class="col-md-2 hidden-xs hidden-sm">
+
+                    <span class="footer-title">Resources</span><br />
+                    <div class="footer-links">
+
+                        <p><a class="nounderline" href="https://www.pcswmm.com/">Software</a></p>
+                        <p><a class="nounderline" href="https://www.chiwater.com/Training">Training</a></p>
+                        <p><a class="nounderline" href="https://www.openswmm.org/">Community</a></p>
+                        <p><a class="nounderline" href="https://www.chijournal.org/">Journal</a></p>
+                        <p><a class="nounderline" href="https://www.icwmm.org/">Conference</a></p>
+                        <p><a class="nounderline" href="https://www.chiwater.com/Consulting">Consulting</a></p>
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12 footer-no-left-padding">
+                    <hr class="footer-separator" />
+                    <span class="pull-right footer-copyright">Copyright <%= Year(Date) %> by CHI</span>
+                </div>
+            </div>
+        </div>
+    </footer>
+ 
+    <script src="assets/jquery-3.1.1.min.js"></script>   
+    <script src="assets/bootstrap.js"></script>
+    <script>
+        var chiConfig = {"RootURL":"https://www.pcswmm.com","SCREEN_XS_MIN":480,"SCREEN_SM_MIN":768,"SCREEN_MD_MIN":992,"SCREEN_LG_MIN":1200,"SCREEN_XS_MAX":767,"SCREEN_SM_MAX":991,"SCREEN_MD_MAX":1199,"Debug":false};
+    </script>
+    <script src="assets/chiscript.functions.js"></script>
+    <script src="assets/chiscript.model.js"></script>
+    <script>
+        try {
+            StartupService.InvokeStartupCalls();
+        } catch (e) {
+            var message = [e.message, e.stack, e.toString()];
+            if(chiConfig.Debug){
+                DebugAlert(message.join('\r\n'));
+            }else{
+                //Do nothing
+                LogMessage(message);
+                alert("Please reload the page we were unable to process your request.");
+            }
+        }
+    </script>
+

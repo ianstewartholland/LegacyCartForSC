@@ -1,0 +1,332 @@
+<!--#include file ="dbpaths.inc"-->
+<!--#include file ="WriteLogEntry.asp"-->
+<%
+'
+' function to calculate tax according to the currency and location
+'
+Function TaxCalculator (ClientProvince, CurrencyAbrev, Items, ShippingCost, NoGST, NoPST, NoHST)  
+	    ' get the items for the tax calculator
+	    Dim Item
+	    Dim ItemDescription
+	    Dim ItemCost
+	    Dim ItemQuantity
+	    n=1    
+	    'define array to store the item information
+	    Dim CartItem()
+	    Dim CartItemDescription()
+	    Dim CartItemCost()
+	    Dim CartItemQuantity()
+    
+	    If Items = "" Then
+		    NumCartItems = 0
+	    Else
+		    For t = 1 to 1000
+			    'get item
+			    p = Instr(n, Items, "/")
+			    If p = 0 Then Exit For
+			    Item = Mid(Items, n, p-n)
+			    n = p + 1
+			    'get description
+			    p = Instr(n, Items, "/")
+			    If p = 0 Then Exit For
+			    ItemDescription= Mid(Items, n, p-n)
+			    n = p + 1
+			    'get cost
+			    p = Instr(n, Items, "/")
+			    
+			    If p = 0 Then Exit For
+			    ItemCost= Mid(Items, n, p-n)
+			    n = p + 1
+			    'get number
+			    p = Instr(n, Items, "/")
+			    If p = 0 Then Exit For
+			    ItemQuantity = Mid(Items, n, p-n)
+			    n = p + 1
+			    'create session item
+			    NumCartItems = t
+			    
+			    redim preserve CartItem(t)
+			    CartItem(t) = Item
+			    
+			    redim preserve CartItemDescription(t)
+			    CartItemDescription(t) = ItemDescription
+			    
+			    redim preserve CartItemCost(t)
+			    CartItemCost(t) = ItemCost
+			    
+			    redim preserve CartItemQuantity(t)
+			    CartItemQuantity(t) = ItemQuantity
+			    
+			    SubTotalCost = SubTotalCost + ItemCost * ItemQuantity
+    
+			    If n > len(Items) Then Exit For
+		    Next
+	    End If
+ 
+        GSTCost = 0
+        PSTCost = 0 'there is no more PST in Mother Canadia
+        HSTCost = 0
+	
+	'
+	'rules for the tax:
+	'only calculate tax if it takes place in canada. 
+	'web workshop is based on client's location. conference/workshop is based on it's location
+	'books, software, anything else all based on client's location
+	'yes we charge tax on them for everything only according to the shipping address
+	'
+	' all the cases below do not include any crazy/extreme rare case eg, an order has two workshops in different location 
+	'
+	isLocal = False
+	isWorkshop = False
+	isConference = False
+
+	NewSubTotal = SubTotalCost
+
+	'this is for calculating everything but workshop and conference items
+	For n = 1 to NumCartItems
+	    If Left(CartItem(n),1) = "W" or Left(CartItem(n),1) = "C" then
+		isLocal = True
+		'filter out web workshop which is taxed based on where they live
+		'If InStr(1,CartItemDescription(n),"web workshop",1) = 0 Then
+
+    '
+		If InStr(LCase(CartItemDescription(n)), LCase(WebTrainingItem)) > 0 Or InStr(LCase(CartItemDescription(n)), "in person") < 1  Or Left(CartItem(n),5) = "W1000" Or Left(CartItem(n),4) = "C031" Or Left(CartItem(n),4) = "C231" Then
+		    isLocal = False
+		    'NewSubTotal = NewSubTotal - (CartItemCost(n) * CartItemQuantity(n))
+		End If
+		
+		If isLocal Then NewSubTotal = NewSubTotal - (CartItemCost(n) * CartItemQuantity(n))
+		
+		If Left(CartItem(n),1) = "W" Then
+		    isWorkshop = True
+		Else
+		    isConference = True
+		End If
+	    End If
+	Next
+	If isLocal Then
+	    For n = 1 to NumCartItems
+		'filter out items that do not want to be calculated below - eg the wire payment
+		If CartItem(n) = WireItem Then
+		    NewCosts = CartItemCost(n) * CartItemQuantity(n)
+		    NewSubTotal = NewSubTotal - NewCosts
+		    calculated = False
+		End If 
+	    Next
+	End If
+       
+	If CurrencyAbrev = "CAD" Then	
+            Select Case ClientProvince
+                Case "NF", "ON", "Ontario"
+                    'calculate 13% HST =====================================================================
+                    'applies to everything sold in Newfoundland, New Brunswick, Ontario =======
+                   
+                    HSTCost = CCur((NewSubTotal + ShippingCost) * 0.13)
+                    
+                    'if HST has been disabled, then calculate GST (i.e. for processing earlier orders - before HST in effect)
+                    If NoHST = "Yes" and NoGST <> "Yes" Then
+                        GSTCost = CCur((NewSubTotal + ShippingCost) * 0.05)
+                    End If
+  
+            ' BC back to GST only as of April 1st, 2013
+               ' Case "BC"
+               '     'calculate 12% HST =====================================================================
+               '     'applies to everything sold in British Columbia
+               '     
+               '     HSTCost = CCur((NewSubTotal + ShippingCost) * 0.12)
+               '     
+               '     'if HST has been disabled, then calculate GST (i.e. for processing earlier orders - before HST in effect)
+               '     If NoHST = "Yes" and NoGST <> "Yes" Then
+               '         GSTCost = CCur((NewSubTotal + ShippingCost) * 0.05)
+               '     End If
+                
+                Case "NS", "NB", "NL"
+                    'calculate 15% HST =====================================================================
+                    'applies to everything sold in Nova Scotia
+                    
+                    HSTCost = CCur((NewSubTotal + ShippingCost) * 0.15)
+                    
+                    'if HST has been disabled, then calculate GST (i.e. for processing earlier orders - before HST in effect)
+                    If NoHST = "Yes" and NoGST <> "Yes" Then
+                        GSTCost = CCur((NewSubTotal + ShippingCost) * 0.05)
+                    End If
+                    
+                Case "PE"
+                    'calculate 14% HST =====================================================================
+                    'applies to everything sold in Prince Edward Island
+                    ' 15% hst in effect as of oct 1, 2016
+                    
+                    HSTCost = CCur((NewSubTotal + ShippingCost) * 0.15)
+                    
+                    'if HST has been disabled, then calculate GST (i.e. for processing earlier orders - before HST in effect)
+                    If NoHST = "Yes" and NoGST <> "Yes" Then
+                        GSTCost = CCur((NewSubTotal + ShippingCost) * 0.05)
+                    End If
+                    
+                Case Else
+                    '"BC", "AB", "MB", "NT", "NU", "PE", "QC", "SK", "YT"
+                    'calculate GST ==================================
+                    'applies to provinces abstaining from HST =======
+                    'BC added to this group as of April 1, 2013 =====
+                    
+                    GSTCost = CCur((NewSubTotal + ShippingCost) * 0.05)
+                    
+            End Select
+
+		    
+	    If isLocal Then
+   ' response.Write "here" & NewCosts
+		'check for workshop items
+		For n = 1 to NumCartItems
+		    If Left(CartItem(n),1) = "W" And CartItem(n) <> "W270" then
+			'trim X suffix if any (discount)
+			If Ucase(Right(CartItem(n),1)) = "X" Then
+			    StrWorkshopID = Left(CartItem(n), Len(CartItem(n)) - 1) 
+			'actually let us rather go ahead and trim any suffix if any (e.g. advanced workshop)
+            ' obsolete this code as we now have the workshop exceed 1000, it's not safe to trim the extra character, trim off abc - sep 14, 2017
+			'ElseIf Len(CartItem(n)) > 4 Then
+			'    StrWorkshopID = Left(CartItem(n), 4)
+            ElseIf Ucase(Right(CartItem(n),1)) = "A" Or Ucase(Right(CartItem(n),1)) = "B" Or Ucase(Right(CartItem(n),1)) = "C" Or Ucase(Right(CartItem(n),1)) = "G" Or Ucase(Right(CartItem(n),1)) = "R" Then
+                StrWorkshopID = Left(CartItem(n), Len(CartItem(n)) - 1)
+			Else
+			    StrWorkshopID = CartItem(n)
+			End If
+'response.Write "here:" & StrWorkshopID
+			'find out where it is being held, connect to database..
+			Set objRecWorkshop = Server.CreateObject ("ADODB.Recordset")
+			strQuery = "SELECT * FROM Workshops WHERE WorkshopID='" & StrWorkshopID & "'"
+			objRecWorkshop.Open strQuery, workshopPath
+			'now check if it is happening in canada
+			Select Case objRecWorkshop("Province")
+			    Case "NF", "ON", "Ontario"
+				HSTCost = CCur(HSTCost + (CartItemCost(n) * CartItemQuantity(n) * 0.13))
+				If NewCosts > 0 And Not calculated Then
+				    HSTCost = HSTCost + NewCosts * 0.13
+				    calculated = True
+				End If
+'response.Write     HSTCost & "<br>"
+			    Case "NS", "NB"
+				HSTCost = CCur(HSTCost + (CartItemCost(n) * CartItemQuantity(n) * 0.15))
+				If NewCosts > 0 And Not calculated Then
+				    HSTCost = HSTCost + NewCosts * 0.15
+				    calculated = True
+				End If
+			    Case "PE"
+				HSTCost = CCur(HSTCost + (CartItemCost(n) * CartItemQuantity(n) * 0.15))
+				If NewCosts > 0 And Not calculated Then
+				    HSTCost = HSTCost + NewCosts * 0.15
+				    calculated = True
+				End If
+			    Case "BC", "AB", "MB", "NT", "NU", "QC", "SK", "YT"
+				GSTCost = CCur(GSTCost + (CartItemCost(n) * CartItemQuantity(n) * 0.05))
+				If NewCosts > 0 And Not calculated Then
+				    GSTCost = GSTCost + NewCosts * 0.05
+				    calculated = True
+				End If
+			    Case Else
+				'
+				' todo - handle: could not calculate because there is no province
+				'
+			End Select
+			objRecWorkshop.Close
+			Set objRecWorkshop = Nothing
+		    End If
+		Next
+	 
+		'check for conference items and wire payment if any
+		For n = 1 to NumCartItems
+		    If Left(CartItem(n),1) = "C" then
+			'assume it is happening in Ontario
+			HSTCost = CCur(HSTCost + (CartItemCost(n) * CartItemQuantity(n) * 0.13))
+			GSTCost = 0
+			PSTCost = 0
+			If NewCosts > 0 And Not calculated Then
+			    HSTCost = HSTCost + NewCosts * 0.13
+			    calculated = True
+			End If
+		    End If
+		Next
+	    
+	    End If ' islocal	        
+	'
+	' for the extreme case, eg someone in the US has an order with a software and a workshop in Ontario
+	' we will charge Ontario tax on this order. Although this person has the option not to buy the software in his order
+	'
+	ElseIf isLocal Then
+'response.write "in the tax calculator - "
+	    ' check which province this is - ignore if there are two different province eg. conference in toronto and workshop in BC
+	    ' there might be more than one (different) workshops but assume it's just one
+	    If isConference Then
+		'assume it is happening in Ontario
+		HSTCost = CCur(HSTCost + (SubTotalCost * 0.13))
+		GSTCost = 0
+		PSTCost = 0
+	    Else
+		For n = 1 to NumCartItems
+		    If Left(CartItem(n),1) = "W" And Not InStr(CartItemDescription(n), WebTrainingItem) > 0 Then
+			'StrWorkshopID = Left(CartItem(n), 4)
+'response.Write 	"here" &    Left(CartItem(n), 4)
+                If Ucase(Right(CartItem(n),1)) = "A" Or Ucase(Right(CartItem(n),1)) = "B" Or Ucase(Right(CartItem(n),1)) = "C" Or Ucase(Right(CartItem(n),1)) = "X" Then
+                    StrWorkshopID = Left(CartItem(n), Len(CartItem(n)) - 1)
+                Else 
+                    StrWorkshopID = CartItem(n)
+                End If
+
+			    Exit For
+		    End If
+		Next
+If StrWorkshopID <> "W270" Then
+    If InStr(StrWorkshopID,"R") > 0 Then StrWorkshopID = Replace(StrWorkshopID,"R","")
+		'find out where it is being held, connect to database..
+		Set objRecWorkshop = Server.CreateObject ("ADODB.Recordset")
+		strQuery = "SELECT * FROM Workshops WHERE WorkshopID='" & StrWorkshopID & "'"
+		objRecWorkshop.Open strQuery, workshopPath
+		'now check if it is happening in canada
+		Select Case objRecWorkshop("Province")
+		    Case "NF", "ON", "Ontario"
+			HSTCost = CCur(HSTCost + (SubTotalCost * 0.13))
+		    Case "NB", "NS"
+			HSTCost = CCur(HSTCost + (SubTotalCost * 0.15))
+		    Case "PE"
+			HSTCost = CCur(HSTCost + (SubTotalCost * 0.15))
+		    Case "BC", "AB", "MB", "NT", "NU", "QC", "SK", "YT"
+			GSTCost = CCur(GSTCost + (SubTotalCost * 0.05))
+		    Case Else
+			'
+			' todo - handle: could not calculate because there is no province
+			'
+		End Select
+		objRecWorkshop.Close
+		Set objRecWorkshop = Nothing	
+End If
+	    End If
+	End If
+    
+	'omit taxes if specified
+	If NoGST = "Yes" Then GSTCost = 0
+	If NoPST = "Yes" Then PSTCost = 0
+	If NoHST = "Yes" Then HSTCost = 0
+	
+	Dim Tax(5)
+	Tax(0) = GSTCost
+	Tax(1) = PSTCost
+	Tax(2) = HSTCost
+	Tax(3) = SubTotalCost + ShippingCost + GSTCost + PSTCost + HSTCost
+	Tax(4) = SubTotalCost
+	TaxCalculator = Tax
+
+    'Response.write "<br>gst: " & GSTCost
+    'Response.write "<br>pst: " & PSTCost
+    'Response.write "<br>hst: " & HSTCost
+    'Response.write "<br>total: " & Tax(3)	
+End Function		
+%>
+
+
+
+
+
+
+
+
+ 

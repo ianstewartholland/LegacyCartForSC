@@ -1,0 +1,12 @@
+'
+' when update the style for cart...
+'
+
+'
+' the css files are safe to be copied across however do NOT overwrite the topmenu
+'
+' to update the topmenu, unfortunately someone has to remember the changes and update the file here
+'
+' in case there is an update on the style images, update/store them in the images folder
+'
+

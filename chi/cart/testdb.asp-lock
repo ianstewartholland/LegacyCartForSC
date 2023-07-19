@@ -1,0 +1,38 @@
+<!--#include file="LogFile.asp"-->
+<!--#include virtual ="/chi/includes/printxml.asp"-->
+<!--#include virtual = "/chi/includes/sendemail.asp"-->
+<!--#include virtual ="/chi/includes/getexchangerate.asp"-->
+<!--#include virtual ="/chi/includes/dbpaths.inc"-->
+<%
+workshopItem = "W100"
+		response.write "before<br>" & workshopItem
+        ' add workshop interests
+        If Session("WorkshopInterests") = "Yes" And Len(workshopItem) > 0 Then
+            Set objRecSurvey = Server.CreateObject ("ADODB.Recordset")
+            objRecSurvey.Open "PreWorkshopSurvey", surveyPath, 3, 3, 2
+
+            objRecSurvey.AddNew
+            objRecSurvey("Workshop") = workshopItem
+            objRecSurvey("TransactionNumber") = "10000"
+            objRecSurvey("ModelingSoftwareExperience") = Session("WExperience1")
+            objRecSurvey("PCSWMMExpercience") = Session("WExperience2")
+            objRecSurvey("WorkshopTopic1") = Session("WInterest1")
+            objRecSurvey("WorkshopTopic2") = Session("WInterest2")
+            objRecSurvey("WorkshopTopic3") = Session("WInterest3")
+            objRecSurvey.Update
+
+		response.write "updated<br>"
+            objRecSurvey.Close
+            Set objRecSurvey = Nothing
+        End If
+
+		response.write "done"
+
+%>
+
+
+
+
+
+
+
