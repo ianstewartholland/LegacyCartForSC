@@ -3,6 +3,8 @@
 <!--#include virtual = "/chi/includes/sendemail.asp"-->
 <!--#include virtual ="/chi/includes/getexchangerate.asp"-->
 <!--#include virtual ="/chi/includes/dbpaths.inc"-->
+<!--#include virtual ="/chi/includes/jsonObject.class.asp"-->
+
 <%
 '
 ' on May 24, 2011 we got three orders with items but empty client information
@@ -403,9 +405,32 @@ If Not IsNull(Session("OurNotes")) And Len(Session("OurNotes")) > 2 Then
     objRec("OurNotes") = Session("OurNotes")
 End If
 
-objRec.Update
-objRec.Close
-Set objRec = Nothing
+	objRec.Update
+
+	Response.LCID = 1046
+	set JSONarr = New JSONArray
+
+	Call JSONarr.LoadRecordSet(objRec)
+	objRec.Close
+	Set objRec = Nothing
+
+	JSONarr(0).remove("TransactionNumber")
+	JSONarr(0).Add "Company_ID", Session("CompanyID")
+	JSONarr(0).Add "Name", NewTransactionNumber
+	JSONarr(0).Add "Owner", "5207166000021515324"
+
+	dim json
+	json = JSONarr(0).Serialize()
+'	Response.Write json
+'	response.End
+
+
+	Set HttpReq = Server.CreateObject("MSXML2.ServerXMLHTTP")
+	HttpReq.open "POST", apiUri & "InsertTransaction", False
+	HttpReq.setRequestHeader "Content-Type", "application/json"
+	HttpReq.setRequestHeader "Accept", "application/json"
+	HttpReq.setRequestHeader "ApiKey", ApiKey
+	HttpReq.send json
 
         ' add workshop interests
         If Session("WorkshopInterests") = "Yes" And Len(workshopItem) > 0 Then
@@ -488,7 +513,7 @@ EmailStr = EmailStr & vbCrLf
 
     ' indicate existing user ends
 
-emailTo = "rob@chiwater.com; info@chiwater.com;"
+emailTo = "ian@chiwater.com" '"rob@chiwater.com; info@chiwater.com;"
 'If Session("TotalCost") > 0 Then emailTo = emailTo & " bill@chiwater.com;"
 ' indicate existing client with * in the email title
 If numTransaction = 0 Then EmailTitleStr = "*" & EmailTitleStr

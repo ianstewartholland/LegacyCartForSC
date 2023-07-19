@@ -2,7 +2,7 @@
 '
 ' Write a log message to the logfile for debugging 
 '
-Public Function WriteLogEntry(strMessage)
+Function WriteLogEntry(strMessage)
     Dim logfile: logfile = "C:\WWWUsers\LocalUser\chi\computationalhydraulics_com\databases\commit.log"
     Dim f, fs
     
@@ -13,5 +13,6 @@ Public Function WriteLogEntry(strMessage)
     f.Close()
     Set f = Nothing
     Set fs = Nothing
+    WriteLogEntry = True
 End Function
-%>
+ %>
