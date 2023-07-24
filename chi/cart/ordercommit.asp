@@ -407,7 +407,7 @@ End If
 
 	objRec.Update
 
-	Response.LCID = 1046
+	Response.LCID = 4105
 	set JSONarr = New JSONArray
 
 	Call JSONarr.LoadRecordSet(objRec)
@@ -420,6 +420,9 @@ End If
 
 	dim json
 	json = JSONarr(0).Serialize()
+
+	'Response.Write json
+	'Response.End
 
 	Set HttpReq = Server.CreateObject("MSXML2.ServerXMLHTTP")
 	HttpReq.open "POST", apiUri & "InsertTransaction", False
@@ -461,7 +464,7 @@ If isTrial Then
 ElseIf isWebinar Then
     EmailTitleStr = "Webinar attendance from " & Session("ClientFirstName") & " " &  Session("ClientLastName") & ", " & Session("ClientCompany") & ", " & Session("ClientCountry")
 Else
-    EmailTitleStr = EmailTitlePreStr  & "order " & Session("CurrencyAbrev") & FormatCurrency(Session("TotalCost"), 2) & " from " & Session("ClientFirstName") & " " &  Session("ClientLastName") & ", " & Session("ClientCompany") & ", " & Session("ClientCountry")
+    EmailTitleStr = EmailTitlePreStr  & "order " & Session("CurrencyAbrev") & FormatCurrency(Session("TotalCost")) & " from " & Session("ClientFirstName") & " " &  Session("ClientLastName") & ", " & Session("ClientCompany") & ", " & Session("ClientCountry")
 End If
 
 'If workshopItem <> "" Then EmailTitleStr = Left(workshopItem, 4) & " - " & EmailTitleStr
@@ -502,6 +505,7 @@ EmailStr = EmailStr & vbCrLf
             EmailStr = EmailStr & vbCrLf & vbCrLf & "This is their " & numTransaction & "  non-zero transaction(s) with CHI."
         End If 
 
+
 	    objRS.Close
 	    Set objRS = Nothing
         set objCommand = Nothing
@@ -514,9 +518,9 @@ emailTo = "ian@chiwater.com" '"rob@chiwater.com; info@chiwater.com;"
 ' indicate existing client with * in the email title
 If numTransaction = 0 Then EmailTitleStr = "*" & EmailTitleStr
 
-    ' to test
+    ' to test ''"store@chiwater.com", _
 	SendMail emailTo, _
-			"store@chiwater.com", _
+			"ian@chiwater.com", _		
 			EmailTitleStr, _
 			EmailStr
 
